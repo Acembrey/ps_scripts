@@ -1,0 +1,32 @@
+# Later revised this script for use with SCCM, however this one allowed SD to simply run script and enter computer name. This was an earlier script, and at the time I was messing around with outputs
+
+$ComputerName = Read-Host "Please Enter Computer Name"
+
+Invoke-Command -ComputerName $ComputerName -ScriptBlock {
+    $RegPath1 = "Registry::HKEY_LOCAL_MACHINE\Software\Microsoft\Cryptography\Wintrust\Config"
+    $RegPath2 = "HKLM:\Software\Wow6432Node\Microsoft\Cryptography\Wintrust\Config"
+    $ValueName = "EnableCertPaddingCheck"
+    $Value = "1"
+
+    $RegistryKey = Test-Path -Path $RegPath1
+    
+    if ($RegistryKey -eq "True") {
+        Write-Host -f Green "***Certificate Padding is Already Enabled***"
+        Return 0
+    }
+    else {
+            New-Item -Path $RegPath1 -Force 
+            New-ItemProperty -Path $RegPath1 -Name $ValueName -Value $Value | Out-Null
+
+            New-Item -Path $RegPath2 -Force 
+            New-ItemProperty -Path $RegPath2 -Name $ValueName -Value $Value | Out-Null
+    }
+    
+    if ($RegistryKey -eq "True") {
+            Write-Host -f Green "Certificate Padding Has Been Enabled."
+        }
+    else {
+            Write-Host -f Red "Something Went Wrong!"
+        }
+
+}
